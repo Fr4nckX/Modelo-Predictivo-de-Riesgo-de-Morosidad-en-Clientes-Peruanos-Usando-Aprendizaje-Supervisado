@@ -3,6 +3,7 @@
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1JOwcv-Pnv5On9ka5jmHBpBMhFW-RoPld?usp=sharing)
 
 Proyecto del curso **Aprendizaje Estadístico** — Universidad Privada Antenor Orrego (UPAO).
+
 Modelo de clasificación binaria que predice si un cliente del sistema financiero peruano incurrirá en morosidad (`mora = 1`) o pagará puntualmente (`mora = 0`), usando Aprendizaje Supervisado.
 
 ## Descripción
@@ -12,6 +13,10 @@ Se comparan cuatro modelos (Regresión Lineal, Regresión Logística, Árbol de 
 - **Dataset:** BankDefaultAnalysis — Morosidad del Sistema Financiero Peruano (Kaggle)
 - **Registros:** 8,399 | **Variables:** 14
 - **Variable objetivo:** `mora` (0 = paga al día, 1 = moroso)
+
+## Documentación
+
+📄 [Informe técnico completo (PDF)](docs/informe.pdf)
 
 ## Estructura del repositorio
 
@@ -25,11 +30,13 @@ Se comparan cuatro modelos (Regresión Lineal, Regresión Logística, Árbol de 
 ## Cómo ejecutar
 
 ### En Google Colab
+
 1. Abre el notebook con el botón **Open in Colab** de arriba.
 2. Ejecuta las celdas en orden (Entorno de ejecución → Ejecutar todas).
 3. Sube el archivo `data.csv` cuando la celda de carga lo solicite.
 
 ### En Weka
+
 1. Abre Weka Explorer.
 2. Carga el archivo `.arff` de la carpeta `data/`.
 3. Aplica los filtros `ReplaceMissingValues` y `NumericToNominal`.
@@ -49,4 +56,5 @@ Se comparan cuatro modelos (Regresión Lineal, Regresión Logística, Árbol de 
 - Ticlla Silva, Abel Gerardo
 
 **Docente:** Sagástegui Chigne, Teobaldo Hernán
+
 **2026**
