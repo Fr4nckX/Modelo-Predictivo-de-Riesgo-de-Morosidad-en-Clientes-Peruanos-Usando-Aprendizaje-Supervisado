@@ -2,11 +2,16 @@
 Sistema de Predicción de Riesgo de Morosidad
 Modelo Random Forest - Universidad Privada Antenor Orrego (UPAO)
 Curso: Aprendizaje Estadístico
+
+Esta versión entrena el modelo al iniciar (usando data/data.csv),
+replicando el pipeline del notebook, para no depender de archivos .pkl.
 """
 
 import streamlit as st
 import numpy as np
-import joblib
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
 
 # ----------------------------------------------------------------------
 # Configuración de la página
@@ -18,18 +23,59 @@ st.set_page_config(
 )
 
 # ----------------------------------------------------------------------
-# Carga del modelo, scaler y features (con caché para eficiencia)
+# Entrenamiento del modelo (cacheado: solo se ejecuta una vez)
 # ----------------------------------------------------------------------
 @st.cache_resource
-def cargar_artefactos():
-    modelo = joblib.load("models/modelo_crediticio.pkl")
-    scaler = joblib.load("models/scaler_crediticio.pkl")
-    features = joblib.load("models/features_crediticio.pkl")
+def entrenar_modelo():
+    # 1. Cargar dataset
+    df = pd.read_csv("data/data.csv")
+
+    # 2. Separar variables numéricas y categóricas
+    vars_categoricas = df.select_dtypes(include=["object"]).columns.tolist()
+    vars_numericas = df.select_dtypes(include=[np.number]).columns.tolist()
+    vars_numericas_features = [v for v in vars_numericas if v != "mora"]
+
+    # 3. Imputar nulos: mediana para numéricas, moda para categóricas
+    for col in vars_numericas_features:
+        if df[col].isnull().sum() > 0:
+            df[col] = df[col].fillna(df[col].median())
+    for col in vars_categoricas:
+        if df[col].isnull().sum() > 0:
+            df[col] = df[col].fillna(df[col].mode()[0])
+
+    # 4. One-Hot Encoding
+    df_encoded = pd.get_dummies(df, columns=vars_categoricas, drop_first=False)
+
+    # 5. Separar X e y
+    X = df_encoded.drop("mora", axis=1)
+    y = df_encoded["mora"]
+    features = X.columns.tolist()
+
+    # 6. Normalización
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    # 7. Balanceo con SMOTE (si está disponible)
+    try:
+        from imblearn.over_sampling import SMOTE
+        smote = SMOTE(random_state=42)
+        X_scaled, y = smote.fit_resample(X_scaled, y)
+    except Exception:
+        pass  # si imblearn no está, entrena sin SMOTE
+
+    # 8. Entrenar Random Forest (mismos hiperparámetros del proyecto)
+    modelo = RandomForestClassifier(
+        n_estimators=100, max_depth=10, random_state=42, n_jobs=-1
+    )
+    modelo.fit(X_scaled, y)
+
     return modelo, scaler, features
 
-modelo, scaler, features = cargar_artefactos()
 
-# Extraer las opciones categóricas directamente de las features del modelo
+with st.spinner("Cargando el modelo por primera vez..."):
+    modelo, scaler, features = entrenar_modelo()
+
+# Extraer opciones categóricas de las features
 viviendas = sorted([f.replace("vivienda_", "") for f in features if f.startswith("vivienda_")])
 zonas = sorted([f.replace("zona_", "") for f in features if f.startswith("zona_")])
 niveles_educ = sorted([f.replace("nivel_educ_", "") for f in features if f.startswith("nivel_educ_")])
@@ -81,20 +127,13 @@ st.divider()
 # ----------------------------------------------------------------------
 def construir_vector():
     row = {f: 0 for f in features}
-    row["atraso"] = atraso
-    row["edad"] = edad
-    row["dias_lab"] = dias_lab
-    row["exp_sf"] = exp_sf
-    row["nivel_ahorro"] = nivel_ahorro
-    row["ingreso"] = ingreso
-    row["linea_sf"] = linea_sf
-    row["deuda_sf"] = deuda_sf
-    row["score"] = score
-    row["clasif_sbs"] = clasif_sbs
-    # Variables categóricas (One-Hot)
-    for col, val in [("vivienda_" + vivienda, 1),
-                     ("zona_" + zona, 1),
-                     ("nivel_educ_" + nivel_educ, 1)]:
+    for k, v in [("atraso", atraso), ("edad", edad), ("dias_lab", dias_lab),
+                 ("exp_sf", exp_sf), ("nivel_ahorro", nivel_ahorro), ("ingreso", ingreso),
+                 ("linea_sf", linea_sf), ("deuda_sf", deuda_sf), ("score", score),
+                 ("clasif_sbs", clasif_sbs)]:
+        if k in row:
+            row[k] = v
+    for col in ["vivienda_" + vivienda, "zona_" + zona, "nivel_educ_" + nivel_educ]:
         if col in row:
             row[col] = 1
     return np.array([row[f] for f in features]).reshape(1, -1)
@@ -106,9 +145,8 @@ if st.button("🔍 Predecir", type="primary", use_container_width=True):
     x = construir_vector()
     x_scaled = scaler.transform(x)
     pred = modelo.predict(x_scaled)[0]
-    prob = modelo.predict_proba(x_scaled)[0][1]  # probabilidad de mora=1
+    prob = modelo.predict_proba(x_scaled)[0][1]
 
-    # Nivel de riesgo
     if prob < 0.40:
         riesgo, color = "BAJO", "green"
     elif prob < 0.70:
@@ -119,9 +157,9 @@ if st.button("🔍 Predecir", type="primary", use_container_width=True):
     st.subheader("Resultado")
 
     if pred == 1:
-        st.error(f"### ⚠️ Cliente MOROSO (mora = 1)")
+        st.error("### ⚠️ Cliente MOROSO (mora = 1)")
     else:
-        st.success(f"### ✅ Cliente NO MOROSO (mora = 0)")
+        st.success("### ✅ Cliente NO MOROSO (mora = 0)")
 
     c1, c2 = st.columns(2)
     c1.metric("Probabilidad de morosidad", f"{prob*100:.1f}%")
