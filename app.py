@@ -23,6 +23,133 @@ st.set_page_config(
 )
 
 # ----------------------------------------------------------------------
+# Estilos (paleta UPAO)
+# ----------------------------------------------------------------------
+PRIMARY = "#0067AE"
+DARK = "#1F497D"
+INK = "#0E1B2A"
+BG_SOFT = "#F4F8FD"
+
+st.markdown(
+    f"""
+    <style>
+    /* Tipografía y fondo general */
+    html, body, [class*="css"] {{
+        font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
+    }}
+    .stApp {{
+        background: linear-gradient(180deg, #FFFFFF 0%, {BG_SOFT} 100%);
+    }}
+    .block-container {{
+        padding-top: 1.6rem;
+        max-width: 880px;
+    }}
+    /* Ocultar chrome por defecto para una vista más limpia */
+    #MainMenu {{visibility: hidden;}}
+    footer {{visibility: hidden;}}
+
+    /* Cabecera tipo banner */
+    .hero {{
+        background: linear-gradient(120deg, {PRIMARY} 0%, {DARK} 100%);
+        border-radius: 18px;
+        padding: 26px 30px;
+        color: #FFFFFF;
+        box-shadow: 0 10px 26px rgba(0,103,174,0.28);
+        margin-bottom: 22px;
+    }}
+    .hero h1 {{
+        margin: 0;
+        font-size: 30px;
+        font-weight: 800;
+        letter-spacing: 0.2px;
+    }}
+    .hero p {{
+        margin: 8px 0 0 0;
+        font-size: 15px;
+        line-height: 1.5;
+        color: #DCEBFA;
+    }}
+    .hero .tag {{
+        display: inline-block;
+        margin-top: 14px;
+        background: rgba(255,255,255,0.16);
+        border: 1px solid rgba(255,255,255,0.35);
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 12.5px;
+        font-weight: 600;
+    }}
+
+    /* Títulos de sección */
+    .section {{
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 17px;
+        font-weight: 700;
+        color: {INK};
+        margin: 6px 0 4px 0;
+    }}
+    .section::before {{
+        content: "";
+        width: 6px; height: 20px;
+        background: {PRIMARY};
+        border-radius: 4px;
+        display: inline-block;
+    }}
+
+    /* Inputs: etiquetas más legibles */
+    label p {{ font-weight: 600 !important; color: {DARK} !important; }}
+
+    /* Botón principal */
+    .stButton > button {{
+        background: {PRIMARY};
+        color: #FFFFFF;
+        border: 0;
+        border-radius: 12px;
+        padding: 0.7rem 1rem;
+        font-weight: 700;
+        font-size: 16px;
+        transition: all .15s ease-in-out;
+    }}
+    .stButton > button:hover {{
+        background: {DARK};
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(0,103,174,0.30);
+    }}
+
+    /* Tarjeta de resultado */
+    .result-card {{
+        border-radius: 16px;
+        padding: 18px 22px;
+        margin-top: 6px;
+        border: 1px solid rgba(0,0,0,0.06);
+        box-shadow: 0 6px 18px rgba(20,40,70,0.08);
+    }}
+    .result-card h2 {{ margin: 0; font-size: 22px; font-weight: 800; }}
+    .result-card p {{ margin: 4px 0 0 0; font-size: 14px; color: #435468; }}
+
+    .pill {{
+        display: inline-block;
+        padding: 6px 16px;
+        border-radius: 999px;
+        font-weight: 800;
+        font-size: 15px;
+        color: #FFFFFF;
+    }}
+    .prob-num {{ font-size: 40px; font-weight: 800; line-height: 1; color: {DARK}; }}
+    .prob-lbl {{ font-size: 13px; color: #5B6B7C; font-weight: 600; }}
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+def section(title: str):
+    st.markdown(f'<div class="section">{title}</div>', unsafe_allow_html=True)
+
+
+# ----------------------------------------------------------------------
 # Entrenamiento del modelo (cacheado: solo se ejecuta una vez)
 # ----------------------------------------------------------------------
 @st.cache_resource
@@ -81,20 +208,25 @@ zonas = sorted([f.replace("zona_", "") for f in features if f.startswith("zona_"
 niveles_educ = sorted([f.replace("nivel_educ_", "") for f in features if f.startswith("nivel_educ_")])
 
 # ----------------------------------------------------------------------
-# Encabezado
+# Encabezado (banner, sin emojis en el título)
 # ----------------------------------------------------------------------
-st.title(" Predicción de Riesgo de Morosidad")
 st.markdown(
-    "Sistema basado en **Random Forest** que estima si un cliente del sistema "
-    "financiero peruano incurrirá en morosidad. Ingrese el perfil del cliente y "
-    "presione **Predecir**."
+    """
+    <div class="hero">
+        <h1>Predicción de Riesgo de Morosidad</h1>
+        <p>Sistema basado en <b>Random Forest</b> que estima si un cliente del
+        sistema financiero peruano incurrirá en morosidad. Ingrese el perfil del
+        cliente y presione <b>Predecir</b>.</p>
+        <span class="tag">Aprendizaje Estadístico · UPAO</span>
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
-st.divider()
 
 # ----------------------------------------------------------------------
 # Formulario de entrada
 # ----------------------------------------------------------------------
-st.subheader("Perfil del cliente")
+section("Perfil del cliente")
 
 col1, col2 = st.columns(2)
 
@@ -120,7 +252,7 @@ with col2:
 
 nivel_educ = st.selectbox("Nivel educativo", options=niveles_educ)
 
-st.divider()
+st.write("")
 
 # ----------------------------------------------------------------------
 # Construcción del vector de entrada
@@ -141,30 +273,69 @@ def construir_vector():
 # ----------------------------------------------------------------------
 # Predicción
 # ----------------------------------------------------------------------
-if st.button("🔍 Predecir", type="primary", use_container_width=True):
+if st.button("Predecir", type="primary", use_container_width=True):
     x = construir_vector()
     x_scaled = scaler.transform(x)
     pred = modelo.predict(x_scaled)[0]
     prob = modelo.predict_proba(x_scaled)[0][1]
 
     if prob < 0.40:
-        riesgo, color = "BAJO", "green"
+        riesgo, color = "BAJO", "#2E7D32"
     elif prob < 0.70:
-        riesgo, color = "MEDIO", "orange"
+        riesgo, color = "MEDIO", "#E8820C"
     else:
-        riesgo, color = "ALTO", "red"
+        riesgo, color = "ALTO", "#C62828"
 
-    st.subheader("Resultado")
+    section("Resultado")
 
+    # Tarjeta principal según la clase predicha
     if pred == 1:
-        st.error("### ⚠️ Cliente MOROSO (mora = 1)")
+        card_bg, card_bd, card_tx = "#FDECEC", "#F3C0C0", "#B3261E"
+        titulo = "Cliente MOROSO  (mora = 1)"
+        detalle = "El modelo estima que el cliente tiene alta probabilidad de incumplir sus pagos."
     else:
-        st.success("### ✅ Cliente NO MOROSO (mora = 0)")
+        card_bg, card_bd, card_tx = "#E9F7EE", "#BEE6CB", "#1E7A3D"
+        titulo = "Cliente NO MOROSO  (mora = 0)"
+        detalle = "El modelo estima que el cliente pagará sus obligaciones al día."
 
-    c1, c2 = st.columns(2)
-    c1.metric("Probabilidad de morosidad", f"{prob*100:.1f}%")
-    c2.markdown(f"### Nivel de riesgo: :{color}[{riesgo}]")
+    st.markdown(
+        f"""
+        <div class="result-card" style="background:{card_bg}; border-color:{card_bd};">
+            <h2 style="color:{card_tx};">{titulo}</h2>
+            <p>{detalle}</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
+    st.write("")
+
+    # Probabilidad + nivel de riesgo
+    c1, c2 = st.columns([1, 1])
+    with c1:
+        st.markdown(
+            f"""
+            <div style="text-align:left;">
+                <div class="prob-lbl">Probabilidad de morosidad</div>
+                <div class="prob-num">{prob*100:.1f}%</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with c2:
+        st.markdown(
+            f"""
+            <div style="text-align:left;">
+                <div class="prob-lbl">Nivel de riesgo</div>
+                <div style="margin-top:6px;">
+                    <span class="pill" style="background:{color};">{riesgo}</span>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    st.write("")
     st.progress(float(prob))
 
     st.caption(
@@ -175,8 +346,13 @@ if st.button("🔍 Predecir", type="primary", use_container_width=True):
 # ----------------------------------------------------------------------
 # Pie de página
 # ----------------------------------------------------------------------
-st.divider()
-st.caption(
-    "Proyecto académico — Aprendizaje Estadístico — UPAO 2026 | "
-    "Rodríguez Correa, Gutiérrez Cossa, Ticlla Silva"
+st.markdown(
+    f"""
+    <hr style="margin-top:28px; border:none; border-top:1px solid #E1E8F0;">
+    <div style="text-align:center; color:#7A8794; font-size:12.5px; padding-top:6px;">
+        Proyecto académico — Aprendizaje Estadístico — UPAO 2026<br>
+        Rodríguez Correa · Gutiérrez Cossa · Ticlla Silva
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
