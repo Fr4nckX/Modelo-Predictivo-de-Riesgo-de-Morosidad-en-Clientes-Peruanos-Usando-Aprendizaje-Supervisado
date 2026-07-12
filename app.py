@@ -351,7 +351,7 @@ st.markdown(
     <hr style="margin-top:28px; border:none; border-top:1px solid #E1E8F0;">
     <div style="text-align:center; color:#7A8794; font-size:12.5px; padding-top:6px;">
         Proyecto académico — Aprendizaje Estadístico — UPAO 2026<br>
-        Rodríguez Correa · Gutiérrez Cossa · Ticlla Silva
+        Franck Williams Rodríguez Correa · 
     </div>
     """,
     unsafe_allow_html=True,
