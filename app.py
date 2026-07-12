@@ -83,7 +83,7 @@ niveles_educ = sorted([f.replace("nivel_educ_", "") for f in features if f.start
 # ----------------------------------------------------------------------
 # Encabezado
 # ----------------------------------------------------------------------
-st.title("💳 Predicción de Riesgo de Morosidad")
+st.title(" Predicción de Riesgo de Morosidad")
 st.markdown(
     "Sistema basado en **Random Forest** que estima si un cliente del sistema "
     "financiero peruano incurrirá en morosidad. Ingrese el perfil del cliente y "
