@@ -214,7 +214,7 @@ st.markdown(
     """
     <div class="hero">
         <h1>Predicción de Riesgo de Morosidad</h1>
-        <p>Sistema basado en <b>Random Forest</b> que estima si un cliente del
+        <p>Sistema predictivo que estima si un cliente del
         sistema financiero peruano incurrirá en morosidad. Ingrese el perfil del
         cliente y presione <b>Predecir</b>.</p>
         <span class="tag">Aprendizaje Estadístico · UPAO</span>
